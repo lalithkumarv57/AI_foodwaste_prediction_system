@@ -1,0 +1,71 @@
+{
+    "best_model": "Gradient Boosting Regressor",
+    "models": {
+        "Random Forest Regressor": {
+            "mae": 6.58,
+            "rmse": 8.89,
+            "mape": 8.2,
+            "r2": 0.9175,
+            "sample_size": 288,
+            "feature_importance": {
+                "Lag_7": 0.625,
+                "Rolling_Mean_7": 0.1583,
+                "Food_Item_Enc": 0.0459,
+                "Special_Event": 0.0416,
+                "Weather_Enc": 0.0266,
+                "Category_Enc": 0.0221,
+                "Temperature_C": 0.015,
+                "Day_Of_Week_Num": 0.0149,
+                "Lag_1": 0.0133,
+                "Rolling_Std_7": 0.0115,
+                "Is_Weekend": 0.0108,
+                "Is_Holiday": 0.0085,
+                "Month": 0.0064
+            }
+        },
+        "Linear Regression (Baseline)": {
+            "mae": 9.14,
+            "rmse": 12.09,
+            "mape": 12.29,
+            "r2": 0.8471,
+            "sample_size": 288,
+            "feature_importance": {
+                "Special_Event": 28.5696,
+                "Is_Weekend": 8.7979,
+                "Is_Holiday": 6.3207,
+                "Rolling_Mean_7": 0.5667,
+                "Temperature_C": 0.4582,
+                "Food_Item_Enc": 0.3636,
+                "Weather_Enc": 0.3435,
+                "Month": 0.3204,
+                "Day_Of_Week_Num": 0.3079,
+                "Category_Enc": 0.305,
+                "Lag_7": 0.2758,
+                "Lag_1": 0.125,
+                "Rolling_Std_7": 0.0831
+            }
+        },
+        "Gradient Boosting Regressor": {
+            "mae": 6.14,
+            "rmse": 8.34,
+            "mape": 7.6,
+            "r2": 0.9273,
+            "sample_size": 288,
+            "feature_importance": {
+                "Lag_7": 0.6128,
+                "Rolling_Mean_7": 0.1491,
+                "Food_Item_Enc": 0.0634,
+                "Special_Event": 0.0416,
+                "Weather_Enc": 0.0352,
+                "Category_Enc": 0.0258,
+                "Lag_1": 0.0167,
+                "Day_Of_Week_Num": 0.0151,
+                "Is_Weekend": 0.0132,
+                "Is_Holiday": 0.0091,
+                "Temperature_C": 0.0079,
+                "Rolling_Std_7": 0.0077,
+                "Month": 0.0025
+            }
+        }
+    }
+}

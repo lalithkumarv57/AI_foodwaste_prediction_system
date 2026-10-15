@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% block title %}Food Waste Analysis & Trends - EcoFeast AI{% endblock %}
+{% block page_heading %}Food Waste Patterns & Trend Analysis{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Top 6 Most Wasted Items Table -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-fire text-danger me-2"></i>High-Risk Items with Highest Waste
+                    </h6>
+                    <small class="text-muted">Ranked by total historical financial waste loss</small>
+                </div>
+                <span class="badge badge-soft-danger px-2 py-1">Priority Attention</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="topWastedTable">
+                    <thead>
+                        <tr>
+                            <th>Food Item</th>
+                            <th>Category</th>
+                            <th>Total Wasted</th>
+                            <th>Total Cost Loss</th>
+                            <th>Avg Daily Waste</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topWastedTbody">
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Loading waste analysis...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Horizontal Bar Chart: Top Waste Financial Impact -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-chart-bar text-warning me-2"></i>Financial Loss by Top Wasted Item (₹)
+                </h6>
+                <small class="text-muted">Monetary waste that can be avoided through ML scheduling</small>
+            </div>
+            <div class="card-body">
+                <canvas id="topWasteBarChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Trend & Root Cause Rows -->
+<div class="row g-4 mb-4">
+    <!-- Monthly Aggregate Trend Line Chart -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-chart-line text-success me-2"></i>Monthly Food Waste Trajectory
+                    </h6>
+                    <small class="text-muted">Aggregated waste volume across months</small>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyTrendChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waste Reasons Breakdown Donut Chart -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-pie-chart text-info me-2"></i>Primary Waste Root Causes
+                </h6>
+                <small class="text-muted">Operational breakdown</small>
+            </div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <div style="width: 100%; max-width: 260px;">
+                    <canvas id="wasteReasonsChart"></canvas>
+                </div>
+                <div class="mt-3 text-center small text-muted">
+                    <i class="fa-solid fa-circle-info me-1"></i> Overproduction represents >70% of commercial cafeteria waste.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strategic Waste Mitigation Framework -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-shield-halved text-success me-2"></i>AI-Driven Food Waste Mitigation Framework
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border-start border-4 border-primary h-100">
+                            <h6 class="fw-bold text-dark mb-1">1. Batch Downsizing</h6>
+                            <p class="small text-muted mb-0">For items with high perishability (e.g. Steamed Rice & Salads), schedule two mid-day micro-batches instead of a single giant morning batch.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border-start border-4 border-warning h-100">
+                            <h6 class="fw-bold text-dark mb-1">2. Dynamic Buffers</h6>
+                            <p class="small text-muted mb-0">Replace fixed 20% safety rules with ML standard deviation bands that auto-tighten during stable mid-week days.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border-start border-4 border-info h-100">
+                            <h6 class="fw-bold text-dark mb-1">3. Weather Adaptations</h6>
+                            <p class="small text-muted mb-0">Curries and soups gain 15-20% demand spikes during rain/cold; salads drop by 18%. Automatic ML feature inputs adjust prep accordingly.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded bg-light border-start border-4 border-success h-100">
+                            <h6 class="fw-bold text-dark mb-1">4. Leftover Repurposing</h6>
+                            <p class="small text-muted mb-0">If usable inventory remains within safe HACCP food-holding limits, deduct directly from next day's batch recommendation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/waste-analysis')
+        .then(res => res.json())
+        .then(data => {
+            // 1. Populate Top Wasted Table
+            const tbody = document.getElementById('topWastedTbody');
+            tbody.innerHTML = '';
+            
+            const topWasted = data.top_wasted;
+            const itemNames = [];
+            const itemCosts = [];
+
+            topWasted.forEach(item => {
+                itemNames.push(item.name);
+                itemCosts.push(item.total_waste_cost);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="fw-semibold text-dark">${item.name}</td>
+                    <td><span class="badge bg-light text-secondary border">${item.category}</span></td>
+                    <td class="fw-bold text-danger">${Math.round(item.total_wasted_qty)} ${item.unit}</td>
+                    <td class="fw-bold text-dark">₹${item.total_waste_cost.toLocaleString()}</td>
+                    <td>${item.avg_daily_waste} ${item.unit}/day</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 2. Horizontal Bar Chart for Top Wasted Financial Loss
+            const ctxBar = document.getElementById('topWasteBarChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: itemNames,
+                    datasets: [{
+                        label: 'Cost Loss (₹)',
+                        data: itemCosts,
+                        backgroundColor: '#ef4444',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, title: { display: true, text: 'Total Waste Cost (₹)' } }
+                    }
+                }
+            });
+
+            // 3. Monthly Waste Trend Chart
+            const months = data.monthly_trend.map(m => m.month);
+            const monthlyWastes = data.monthly_trend.map(m => m.wasted_qty);
+            const monthlyCosts = data.monthly_trend.map(m => m.wasted_cost);
+
+            const ctxMonth = document.getElementById('monthlyTrendChart').getContext('2d');
+            new Chart(ctxMonth, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Wasted Portions',
+                            data: monthlyWastes,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Waste Cost (₹)',
+                            data: monthlyCosts,
+                            borderColor: '#f59e0b',
+                            borderDash: [4, 4],
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Portions' } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Cost (₹)' } }
+                    }
+                }
+            });
+
+            // 4. Waste Reasons Donut Chart
+            const reasonLabels = data.waste_reasons.map(r => r.waste_reason);
+            const reasonData = data.waste_reasons.map(r => r.total_qty);
+
+            const ctxReason = document.getElementById('wasteReasonsChart').getContext('2d');
+            new Chart(ctxReason, {
+                type: 'doughnut',
+                data: {
+                    labels: reasonLabels,
+                    datasets: [{
+                        data: reasonData,
+                        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                    cutout: '60%'
+                }
+            });
+        })
+        .catch(err => console.error("Error loading waste analysis:", err));
+});
+</script>
+{% endblock %}

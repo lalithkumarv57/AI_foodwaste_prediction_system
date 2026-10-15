@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}UN SDG 12 Sustainability & Impact Report - EcoFeast AI{% endblock %}
+{% block page_heading %}UN Sustainable Development Goal 12 Impact Report{% endblock %}
+
+{% block content %}
+<!-- SDG 12 Hero Banner -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 text-white p-4" style="background: linear-gradient(135deg, #15803d 0%, #166534 100%); border-radius: 14px;">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="badge bg-white text-success fw-bold px-3 py-1 mb-2">TARGET 12.3 ALIGNED</div>
+                    <h3 class="fw-bold mb-2">Halving Food Waste Across the Supply Chain</h3>
+                    <p class="mb-0 text-light opacity-90" style="max-width: 680px;">
+                        According to UNEP, one-third of all food produced globally is wasted. By applying machine learning demand forecasting, institutions replace guesswork with empirical demand predictions, driving food waste reductions while preserving food security and kitchen profitability.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <div class="p-3 bg-white bg-opacity-10 rounded-3 d-inline-block text-start">
+                        <div class="small text-light">Target KPI</div>
+                        <div class="fs-3 fw-bold text-white">40% - 50%</div>
+                        <div class="small text-light opacity-75">Reduction in avoidable cafeteria waste</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Environmental & Economic Impact Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3 h-100">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="p-3 rounded-circle bg-success bg-opacity-10 text-success">
+                    <i class="fa-solid fa-water fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">Embedded Water Footprint Saved</h6>
+                    <small class="text-muted">Conserved through reduced surplus food</small>
+                </div>
+            </div>
+            <div class="display-6 fw-bold text-dark mt-2">~18,400 L</div>
+            <p class="small text-muted mt-1 mb-0">Every portion of wasted grain and dairy embeds substantial freshwater usage across farming and processing.</p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3 h-100">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="p-3 rounded-circle bg-warning bg-opacity-10 text-warning">
+                    <i class="fa-solid fa-cloud-arrow-down fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">Avoided GHG Emissions</h6>
+                    <small class="text-muted">Landfill methane diversion</small>
+                </div>
+            </div>
+            <div class="display-6 fw-bold text-dark mt-2">~2.4 MT</div>
+            <p class="small text-muted mt-1 mb-0">CO₂ equivalent emissions avoided from decomposing organic matter in municipal landfills.</p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3 h-100">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                    <i class="fa-solid fa-coins fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">Financial Capital Conserved</h6>
+                    <small class="text-muted">Procurement budget savings</small>
+                </div>
+            </div>
+            <div class="display-6 fw-bold text-dark mt-2">~35% Margin</div>
+            <p class="small text-muted mt-1 mb-0">Every rupee saved on raw ingredient over-procurement directly boosts institutional operating margin.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Waste Cost by Category Table -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-list-check text-success me-2"></i>Waste and Cost Breakdown by Category
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Total Portions Wasted</th>
+                            <th>Cumulative Financial Loss</th>
+                            <th>SDG 12 Intervention Strategy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in waste_by_category %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ row.category }}</td>
+                                <td class="fw-semibold text-danger">{{ "{:,.0f}".format(row.total_wasted) }} portions</td>
+                                <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(row.total_waste_cost) }}</td>
+                                <td>
+                                    {% if 'Salad' in row.category %}
+                                        <span class="small text-muted">Highly perishable raw greens. Implement morning-only batch prep with 5% safety buffer.</span>
+                                    {% elif 'Rice' in row.category or 'Curry' in row.category %}
+                                        <span class="small text-muted">Staple menu items. Shift to dual-shift batch cooking (11:30 AM & 1:00 PM) based on live student influx.</span>
+                                    {% elif 'Bakery' in row.category %}
+                                        <span class="small text-muted">Bake-on-demand model for second half of lunch rush.</span>
+                                    {% else %}
+                                        <span class="small text-muted">Leverage temperature and weather-conditioned ML forecasts.</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% block title %}Machine Learning Model Evaluation - EcoFeast AI{% endblock %}
+{% block page_heading %}Machine Learning Model Evaluation & Metrics{% endblock %}
+
+{% block content %}
+<!-- Retrain Banner & Chronological Split Notice -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-code-compare text-success me-2"></i>Multi-Model Rigorous Benchmarking</h5>
+                    <p class="text-muted small mb-0">
+                        Models are evaluated using a strict <strong>chronological time-series split (past 80% train, subsequent 20% test)</strong> to prevent lookahead data leakage.
+                    </p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-success btn-sm px-3 shadow-sm" id="retrainBtn">
+                        <i class="fa-solid fa-arrows-rotate me-1"></i> Retrain All Models Live
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Performance Comparison Table -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-trophy text-warning me-2"></i>Evaluation Metrics Summary Table
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Model Architecture</th>
+                            <th>Role / Type</th>
+                            <th>Mean Absolute Error (MAE)</th>
+                            <th>Root Mean Squared Error (RMSE)</th>
+                            <th>MAPE (%)</th>
+                            <th>R² Score</th>
+                            <th>Test Samples</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in eval_results %}
+                            <tr class="{% if m.best_model_flag == 1 %}table-success bg-opacity-25{% endif %}">
+                                <td class="fw-bold text-dark">
+                                    {{ m.model_name }}
+                                    {% if m.best_model_flag == 1 %}
+                                        <span class="badge bg-success ms-2"><i class="fa-solid fa-crown me-1"></i>Best Model</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if 'Baseline' in m.model_name %}
+                                        <span class="badge bg-secondary">Linear Baseline</span>
+                                    {% elif 'Random Forest' in m.model_name %}
+                                        <span class="badge bg-primary">Bagging Ensemble</span>
+                                    {% else %}
+                                        <span class="badge bg-dark">Boosting Ensemble</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ m.mae }} <small class="text-muted">portions</small></td>
+                                <td>{{ m.rmse }} <small class="text-muted">portions</small></td>
+                                <td class="fw-bold {% if m.mape < 10 %}text-success{% else %}text-warning{% endif %}">
+                                    {{ m.mape }}%
+                                </td>
+                                <td class="fw-bold">{{ m.r2_score }}</td>
+                                <td>{{ m.sample_size }}</td>
+                                <td>
+                                    {% if m.best_model_flag == 1 %}
+                                        <span class="badge badge-soft-success px-2 py-1">Active in Production</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary border">Alternative</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Importance & Metric Visualizations -->
+<div class="row g-4 mb-4">
+    <!-- Feature Importance Bar Chart -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-chart-column text-primary me-2"></i>Feature Importance Ranking (Best Model)
+                </h6>
+                <small class="text-muted">Relative influence of temporal lags, weather, and day of week</small>
+            </div>
+            <div class="card-body">
+                <canvas id="featureImportanceChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Comparison Chart (MAE & RMSE) -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-chart-bar text-info me-2"></i>MAE & RMSE Comparison
+                </h6>
+                <small class="text-muted">Lower values represent higher precision</small>
+            </div>
+            <div class="card-body">
+                <canvas id="modelMetricsChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ML Methodology & Integrity Notice -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-white">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-flask-vial text-success me-2"></i>Scientific Methodology & Reliability Safeguards
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded h-100">
+                            <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-clock me-1 text-primary"></i> No Lookahead Leakage</h6>
+                            <p class="small text-muted mb-0">Lag features (<code>Lag_1</code>, <code>Lag_7</code>, <code>Rolling_Mean_7</code>) are computed strictly with a <code>shift(1)</code> lag, ensuring today's sales are never accessible when making today's forecast.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded h-100">
+                            <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-calendar-check me-1 text-success"></i> Chronological Split</h6>
+                            <p class="small text-muted mb-0">Standard random cross-validation leaks time-series dependencies. Our chronological validation tests the model on unseen future dates.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded h-100">
+                            <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-ban me-1 text-danger"></i> Non-Negative Bound</h6>
+                            <p class="small text-muted mb-0">The model output is constrained by <code>MAX(0, prediction)</code> to prevent nonsensical negative food demand predictions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Feature Importance Chart
+    const featureImportanceData = {{ best_feature_importance | tojson }};
+    const featLabels = Object.keys(featureImportanceData);
+    const featValues = Object.values(featureImportanceData);
+
+    const ctxFeat = document.getElementById('featureImportanceChart').getContext('2d');
+    new Chart(ctxFeat, {
+        type: 'bar',
+        data: {
+            labels: featLabels,
+            datasets: [{
+                label: 'Relative Importance Score',
+                data: featValues,
+                backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, title: { display: true, text: 'Importance Weight' } }
+            }
+        }
+    });
+
+    // 2. MAE & RMSE Model Comparison Chart
+    const evalResults = {{ eval_results | tojson }};
+    const modelNames = evalResults.map(m => m.model_name.replace(' (Baseline)', ''));
+    const maes = evalResults.map(m => m.mae);
+    const rmses = evalResults.map(m => m.rmse);
+
+    const ctxModel = document.getElementById('modelMetricsChart').getContext('2d');
+    new Chart(ctxModel, {
+        type: 'bar',
+        data: {
+            labels: modelNames,
+            datasets: [
+                {
+                    label: 'MAE (Portions)',
+                    data: maes,
+                    backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                    borderRadius: 4
+                },
+                {
+                    label: 'RMSE (Portions)',
+                    data: rmses,
+                    backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Error in Portions' } }
+            }
+        }
+    });
+
+    // Retrain button handler
+    const retrainBtn = document.getElementById('retrainBtn');
+    retrainBtn.addEventListener('click', function() {
+        retrainBtn.disabled = true;
+        retrainBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Retraining Models...';
+
+        fetch('/api/retrain-models', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Models successfully retrained! Reloading metrics...');
+                    window.location.reload();
+                } else {
+                    alert('Retraining error: ' + data.error);
+                    retrainBtn.disabled = false;
+                    retrainBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate me-1"></i> Retrain All Models Live';
+                }
+            })
+            .catch(err => {
+                alert('Server error during retraining.');
+                retrainBtn.disabled = false;
+                retrainBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate me-1"></i> Retrain All Models Live';
+            });
+    });
+});
+</script>
+{% endblock %}

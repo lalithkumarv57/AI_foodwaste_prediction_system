@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+{% block title %}Food Demand Prediction & Waste Minimizer - EcoFeast AI{% endblock %}
+{% block page_heading %}Food Demand Prediction & Preparation Optimization{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Form Column -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-sliders text-success me-2"></i>Prediction Parameters
+                </h6>
+                <small class="text-muted">Configure operational parameters to forecast demand</small>
+            </div>
+            <div class="card-body">
+                <form id="predictionForm">
+                    <!-- Food Item Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Food Item <span class="text-danger">*</span></label>
+                        <select class="form-select" id="foodItemId" required>
+                            {% for item in items %}
+                                <option value="{{ item.id }}" 
+                                        data-category="{{ item.category }}" 
+                                        data-unit="{{ item.unit }}"
+                                        data-cost="{{ item.unit_cost }}"
+                                        data-price="{{ item.selling_price }}"
+                                        data-stock="{{ item.current_usable_stock }}"
+                                        data-buffer="{{ item.default_safety_buffer_pct }}">
+                                    {{ item.name }} ({{ item.category }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="d-flex justify-content-between mt-1 text-muted small" id="itemDetailNotice">
+                            <span>Unit Cost: ₹<span id="displayUnitCost">45.00</span></span>
+                            <span>Selling Price: ₹<span id="displaySellingPrice">120.00</span></span>
+                            <span>Current Stock: <span id="displayCurrentStock">15</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Target Prediction Date -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Target Prediction Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="targetDate" value="{{ default_date }}" required>
+                        <small class="text-muted">Calculates day-of-week, seasonal shifts, and lag sequences automatically</small>
+                    </div>
+
+                    <!-- Environmental Factors: Weather & Temp -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Weather Condition</label>
+                            <select class="form-select" id="weather">
+                                <option value="Sunny" selected>☀️ Sunny / Mild</option>
+                                <option value="Rainy">🌧️ Rainy</option>
+                                <option value="Cloudy">⛅ Cloudy</option>
+                                <option value="Cold">❄️ Cold</option>
+                                <option value="Hot">🔥 Hot</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Temperature (°C)</label>
+                            <input type="number" class="form-control" id="temperature" value="26.0" step="0.5" min="-10" max="50">
+                        </div>
+                    </div>
+
+                    <!-- Event Checkboxes -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="isHoliday">
+                                <label class="form-check-label fw-semibold" for="isHoliday">Public Holiday</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="specialEvent">
+                                <label class="form-check-label fw-semibold" for="specialEvent">Special Event</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3 text-muted">
+
+                    <!-- Usable Inventory & Safety Stock Buffer -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Usable Inventory Already on Hand (<span id="unitLabel1">portions</span>)</label>
+                        <input type="number" class="form-control" id="usableInventory" value="15" min="0" step="1">
+                        <small class="text-muted">Deducted from batch production to avoid overstocking</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label fw-semibold">Configurable Safety Stock Buffer</label>
+                            <span class="text-success fw-bold" id="bufferValueDisplay">10%</span>
+                        </div>
+                        <input type="range" class="form-range" id="safetyBufferPct" min="0" max="30" step="1" value="10">
+                        <small class="text-muted">Protects against unpredictable demand surges based on service requirements</small>
+                    </div>
+
+                    <!-- Model Choice -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Machine Learning Model</label>
+                        <select class="form-select" id="modelChoice">
+                            <option value="best" selected>🌟 Best Performing Model (Auto-selected)</option>
+                            <option value="gradient_boosting_regressor">Gradient Boosting Regressor</option>
+                            <option value="random_forest_regressor">Random Forest Regressor</option>
+                            <option value="linear_regression_baseline">Linear Regression (Baseline)</option>
+                        </select>
+                    </div>
+
+                    <!-- What-if Planned Prep (Optional) -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Test Planned Preparation (Optional What-If)</label>
+                        <input type="number" class="form-control" id="plannedPreparation" placeholder="Leave empty to use AI Recommended Prep" min="0">
+                        <small class="text-muted">Simulate what happens to food waste if you prepare a custom quantity</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-semibold shadow-sm" id="submitBtn">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Demand & Preparation Plan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output & Recommendation Column -->
+    <div class="col-lg-7">
+        <!-- Placeholder before submission -->
+        <div id="predictionPlaceholder" class="card shadow-sm border-0 h-100 text-center p-5 d-flex flex-column align-items-center justify-content-center">
+            <div class="p-4 bg-light rounded-circle text-muted mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-chart-line fs-2 text-success"></i>
+            </div>
+            <h5 class="fw-bold text-dark">Ready for Demand Prediction</h5>
+            <p class="text-muted" style="max-width: 420px;">
+                Select your food item, target date, and operational parameters on the left to calculate future demand, safety stock, and waste risk.
+            </p>
+        </div>
+
+        <!-- Dynamic Output Container (Hidden by default) -->
+        <div id="predictionResults" class="d-none">
+            <!-- Recommendation Highlight Hero Card -->
+            <div class="card shadow-sm border-0 mb-4 rec-callout" id="recCalloutBox">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge bg-success px-3 py-2 text-uppercase letter-spacing-1">
+                        <i class="fa-solid fa-check-circle me-1"></i> AI Recommendation Output
+                    </span>
+                    <span class="badge bg-white text-dark border px-2 py-1" id="resModelBadge">Model</span>
+                </div>
+
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.8rem;">Recommended Food Preparation Quantity</h6>
+                        <div class="display-5 fw-bold text-success mb-1" id="resRecommendedPrep">0</div>
+                        <div class="text-muted small">
+                            For <strong id="resItemName" class="text-dark">Food Item</strong> on <span id="resTargetDate" class="fw-semibold text-dark">Date</span>
+                        </div>
+                    </div>
+                    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                        <div class="p-3 bg-white rounded-3 border">
+                            <div class="text-muted small">Predicted Customer Demand</div>
+                            <div class="fs-4 fw-bold text-dark" id="resPredictedDemand">0</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Based on historical lags & patterns</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formula Breakdown Box -->
+                <div class="prep-formula-box mt-3 text-secondary">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-calculator me-1"></i> Formula Application:</div>
+                    <code>Recommended Preparation = MAX(0, Predicted Demand (<span id="fPred">0</span>) + Safety Stock (<span id="fSafety">0</span>) - Usable Inventory (<span id="fInv">0</span>)) = <strong class="text-success"><span id="fFinal">0</span></strong></code>
+                </div>
+            </div>
+
+            <!-- Waste Risk & Cost Savings Evaluation -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 p-3 h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted fw-semibold small text-uppercase">Food Waste Risk</span>
+                            <span class="badge" id="resRiskBadge">Risk Level</span>
+                        </div>
+                        <div class="fs-3 fw-bold text-dark mb-1" id="resExcessQty">0 <small class="fs-6 fw-normal text-muted">portions</small></div>
+                        <p class="small text-muted mb-0" id="resRiskDesc">Risk description</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 p-3 h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted fw-semibold small text-uppercase">Financial Impact</span>
+                            <span class="badge bg-light text-secondary border">Cost Analysis</span>
+                        </div>
+                        <div class="fs-3 fw-bold text-info mb-1" id="resCostSavings">₹0.00</div>
+                        <p class="small text-muted mb-0">
+                            Estimated cost savings achieved compared to traditional blind overproduction.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contextual Operational Recommendations -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-lightbulb text-warning me-2"></i>Actionable Kitchen Guidance (SDG 12)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-2" id="resActionTips">
+                        <!-- Populated dynamically -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Interactive Historical Validation Chart -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark">
+                            <i class="fa-solid fa-chart-line text-primary me-2"></i>Historical Demand vs ML Model Tracking
+                        </h6>
+                        <small class="text-muted">Demonstrates model precision over recent 20 recorded days</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="itemValidationChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let validationChart = null;
+
+// Update UI info when selected food item changes
+const foodItemSelect = document.getElementById('foodItemId');
+function updateItemDetails() {
+    const selected = foodItemSelect.options[foodItemSelect.selectedIndex];
+    document.getElementById('displayUnitCost').textContent = parseFloat(selected.dataset.cost).toFixed(2);
+    document.getElementById('displaySellingPrice').textContent = parseFloat(selected.dataset.price).toFixed(2);
+    document.getElementById('displayCurrentStock').textContent = selected.dataset.stock;
+    document.getElementById('usableInventory').value = selected.dataset.stock;
+    document.getElementById('unitLabel1').textContent = selected.dataset.unit;
+    
+    // Auto load historical validation chart for this item
+    loadValidationChart(selected.value);
+}
+foodItemSelect.addEventListener('change', updateItemDetails);
+
+// Safety stock buffer slider label update
+const bufferSlider = document.getElementById('safetyBufferPct');
+const bufferLabel = document.getElementById('bufferValueDisplay');
+bufferSlider.addEventListener('input', () => {
+    bufferLabel.textContent = bufferSlider.value + '%';
+});
+
+// Load validation chart
+function loadValidationChart(itemId) {
+    fetch(`/api/historical-validation?item_id=${itemId}`)
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById('itemValidationChart').getContext('2d');
+            if (validationChart) {
+                validationChart.destroy();
+            }
+            validationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels.map(l => l.slice(5)),
+                    datasets: [
+                        {
+                            label: 'Actual Demand Sold',
+                            data: data.actual_demand,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Model Predicted Demand',
+                            data: data.predicted_demand,
+                            borderColor: '#3b82f6',
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Quantity Prepared (Historical)',
+                            data: data.quantity_prepared,
+                            borderColor: '#ef4444',
+                            borderWidth: 1.5,
+                            pointRadius: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: false, title: { display: true, text: 'Portions' } }
+                    }
+                }
+            });
+        })
+        .catch(err => console.error("Error loading historical chart:", err));
+}
+
+// Form Submission & Prediction API call
+document.getElementById('predictionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Computing Prediction...';
+
+    const payload = {
+        food_item_id: foodItemSelect.value,
+        target_date: document.getElementById('targetDate').value,
+        weather: document.getElementById('weather').value,
+        temperature: document.getElementById('temperature').value,
+        is_holiday: document.getElementById('isHoliday').checked ? 1 : 0,
+        special_event: document.getElementById('specialEvent').checked ? 1 : 0,
+        usable_inventory: document.getElementById('usableInventory').value,
+        safety_buffer_pct: document.getElementById('safetyBufferPct').value,
+        model_choice: document.getElementById('modelChoice').value,
+        planned_preparation: document.getElementById('plannedPreparation').value || -1
+    };
+
+    fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Demand & Preparation Plan';
+
+        if (!data.success) {
+            alert('Prediction error: ' + data.error);
+            return;
+        }
+
+        // Show results
+        document.getElementById('predictionPlaceholder').classList.add('d-none');
+        document.getElementById('predictionResults').classList.remove('d-none');
+
+        const pred = data.prediction;
+        const rec = data.recommendation;
+        const risk = data.waste_risk;
+
+        // Populate fields
+        document.getElementById('resRecommendedPrep').textContent = rec.recommended_prep + ' ' + pred.unit;
+        document.getElementById('resPredictedDemand').textContent = pred.predicted_demand + ' ' + pred.unit;
+        document.getElementById('resItemName').textContent = pred.food_item_name;
+        document.getElementById('resTargetDate').textContent = pred.target_date;
+        document.getElementById('resModelBadge').textContent = 'Model: ' + pred.model_used;
+
+        // Formula values
+        document.getElementById('fPred').textContent = pred.predicted_demand;
+        document.getElementById('fSafety').textContent = rec.safety_stock;
+        document.getElementById('fInv').textContent = rec.usable_inventory;
+        document.getElementById('fFinal').textContent = rec.recommended_prep + ' ' + pred.unit;
+
+        // Risk badge
+        const badge = document.getElementById('resRiskBadge');
+        badge.className = 'badge px-2 py-1 ' + (risk.risk_badge === 'danger' ? 'bg-danger' : risk.risk_badge === 'warning' ? 'bg-warning text-dark' : 'bg-success');
+        badge.textContent = risk.risk_level + ' Risk';
+
+        document.getElementById('resExcessQty').textContent = risk.estimated_waste_portions + ' ' + pred.unit;
+        document.getElementById('resRiskDesc').textContent = risk.risk_description;
+        document.getElementById('resCostSavings').textContent = '₹' + risk.potential_cost_savings.toFixed(2);
+
+        // Actionable tips
+        const tipsContainer = document.getElementById('resActionTips');
+        tipsContainer.innerHTML = '';
+        data.actionable_tips.forEach(tip => {
+            const li = document.createElement('li');
+            li.className = 'd-flex align-items-start gap-2 p-2 rounded bg-light';
+            li.innerHTML = '<i class="fa-solid fa-check text-success mt-1"></i> <span class="small text-dark">' + tip + '</span>';
+            tipsContainer.appendChild(li);
+        });
+
+        // Refresh chart
+        loadValidationChart(pred.food_item_id);
+    })
+    .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Demand & Preparation Plan';
+        alert('Network or server error during prediction.');
+        console.error(err);
+    });
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', updateItemDetails);
+</script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}CSV Dataset Upload & Validation - EcoFeast AI{% endblock %}
+{% block page_heading %}Historical Dataset Upload & Schema Validation{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Upload Box Column -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-file-arrow-up text-primary me-2"></i>Upload Historical Food Records (.CSV)
+                </h6>
+                <small class="text-muted">Supports ingestion from POS, ERP, and kitchen management systems</small>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('api_upload_csv') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Select CSV File <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="dataset_file" accept=".csv" required>
+                        <small class="text-muted">Maximum file size: 16 MB. File must be formatted with standard comma delimiters.</small>
+                    </div>
+
+                    <div class="alert alert-info d-flex align-items-center gap-2 small mb-4">
+                        <i class="fa-solid fa-circle-info fs-5"></i>
+                        <div>
+                            Upon upload, the system validates all required columns, cleans null values, enforces non-negative constraints, seeds the database, and automatically retrains the machine learning models.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up me-2"></i>Validate, Ingest & Retrain
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Required Schema Specifications Column -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-table-list text-success me-2"></i>Dataset Schema & Column Requirements
+                </h6>
+                <small class="text-muted">Columns recognized by the data preprocessing pipeline</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0 small">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Description / Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Date</code></td>
+                                <td>String / Date</td>
+                                <td><span class="badge bg-danger">Mandatory</span></td>
+                                <td>YYYY-MM-DD (e.g. 2026-10-15)</td>
+                            </tr>
+                            <tr>
+                                <td><code>Food_Item</code></td>
+                                <td>String</td>
+                                <td><span class="badge bg-danger">Mandatory</span></td>
+                                <td>Name of dish (e.g. Vegetable Biryani)</td>
+                            </tr>
+                            <tr>
+                                <td><code>Category</code></td>
+                                <td>String</td>
+                                <td><span class="badge bg-danger">Mandatory</span></td>
+                                <td>Rice, Curry, Salad, Pasta, etc.</td>
+                            </tr>
+                            <tr>
+                                <td><code>Quantity_Sold</code></td>
+                                <td>Numeric</td>
+                                <td><span class="badge bg-danger">Mandatory</span></td>
+                                <td>Portions sold (Target demand)</td>
+                            </tr>
+                            <tr>
+                                <td><code>Quantity_Prepared</code></td>
+                                <td>Numeric</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Portions cooked in kitchen</td>
+                            </tr>
+                            <tr>
+                                <td><code>Quantity_Wasted</code></td>
+                                <td>Numeric</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Surplus portions discarded</td>
+                            </tr>
+                            <tr>
+                                <td><code>Unit_Cost</code></td>
+                                <td>Numeric</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Preparation cost per portion (₹)</td>
+                            </tr>
+                            <tr>
+                                <td><code>Selling_Price</code></td>
+                                <td>Numeric</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Menu sales price per portion (₹)</td>
+                            </tr>
+                            <tr>
+                                <td><code>Weather_Condition</code></td>
+                                <td>String</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Sunny, Rainy, Cold, Hot, Cloudy</td>
+                            </tr>
+                            <tr>
+                                <td><code>Temperature_C</code></td>
+                                <td>Numeric</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>Ambient temperature in °C</td>
+                            </tr>
+                            <tr>
+                                <td><code>Is_Holiday</code></td>
+                                <td>Binary (0/1)</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>1 if public or festive holiday</td>
+                            </tr>
+                            <tr>
+                                <td><code>Special_Event</code></td>
+                                <td>Binary (0/1)</td>
+                                <td><span class="badge bg-secondary">Optional</span></td>
+                                <td>1 if campus or venue special event</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% block title %}Inventory & Activity Logging - EcoFeast AI{% endblock %}
+{% block page_heading %}Inventory Management & Daily Activity Logging{% endblock %}
+
+{% block content %}
+<!-- Top Action Bar -->
+<div class="row g-3 mb-4 align-items-center">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+            <input type="text" class="form-control border-start-0" id="inventorySearch" placeholder="Search food items by name or category...">
+        </div>
+    </div>
+    <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end">
+        <button class="btn btn-primary btn-sm px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addItemModal">
+            <i class="fa-solid fa-plus me-1"></i> Add Food Item
+        </button>
+        <button class="btn btn-warning btn-sm px-3 shadow-sm text-dark" data-bs-toggle="modal" data-bs-target="#logActivityModal">
+            <i class="fa-solid fa-clipboard-list me-1"></i> Log Activity
+        </button>
+    </div>
+</div>
+
+<!-- Inventory Status Table -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-boxes-stacked text-success me-2"></i>Active Food Inventory & Buffer Thresholds
+                    </h6>
+                    <small class="text-muted">Live usable stock synced with kitchen operations</small>
+                </div>
+                <span class="badge bg-light text-secondary border">{{ items|length }} Items Listed</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>Food Item</th>
+                            <th>Category</th>
+                            <th>Unit Cost</th>
+                            <th>Selling Price</th>
+                            <th>Usable Stock</th>
+                            <th>Safety Buffer</th>
+                            <th>Storage Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ item.name }}</div>
+                                    <small class="text-muted">ID: #{{ item.id }}</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ item.category }}</span></td>
+                                <td>₹{{ "{:,.2f}".format(item.unit_cost) }}</td>
+                                <td>₹{{ "{:,.2f}".format(item.selling_price) }}</td>
+                                <td>
+                                    <span class="fw-bold {% if item.current_usable_stock < item.safety_stock_buffer %}text-danger{% else %}text-success{% endif %}">
+                                        {{ item.current_usable_stock }}
+                                    </span> 
+                                    <span class="text-muted small">{{ item.unit }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border">
+                                        {{ item.safety_stock_buffer }} {{ item.unit }}
+                                    </span>
+                                </td>
+                                <td><span class="small text-muted">{{ item.storage_location }}</span></td>
+                                <td>
+                                    <button class="btn btn-outline-secondary btn-sm edit-stock-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editStockModal"
+                                            data-id="{{ item.id }}"
+                                            data-name="{{ item.name }}"
+                                            data-stock="{{ item.current_usable_stock }}"
+                                            data-buffer="{{ item.safety_stock_buffer }}">
+                                        <i class="fa-solid fa-pen-to-square me-1"></i> Update Stock
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Add New Food Item -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('api_add_item') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-utensils text-success me-2"></i>Add New Food Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Item Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" placeholder="e.g. Vegetable Lasagna" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                        <select class="form-select" name="category" required>
+                            <option value="Main Course">Main Course</option>
+                            <option value="Rice & Grains">Rice & Grains</option>
+                            <option value="Curry & Stew">Curry & Stew</option>
+                            <option value="Salads & Bowls">Salads & Bowls</option>
+                            <option value="Soups & Sides">Soups & Sides</option>
+                            <option value="Bakery & Pizza">Bakery & Pizza</option>
+                            <option value="Desserts & Dairy">Desserts & Dairy</option>
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Unit</label>
+                            <input type="text" class="form-control" name="unit" value="portions" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Shelf Life (Days)</label>
+                            <input type="number" class="form-control" name="shelf_life_days" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Unit Cost (₹) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="unit_cost" step="0.5" value="45.0" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Selling Price (₹) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="selling_price" step="0.5" value="120.0" required>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Initial Stock</label>
+                            <input type="number" class="form-control" name="initial_stock" value="10" min="0">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Safety Stock Buffer</label>
+                            <input type="number" class="form-control" name="safety_stock" value="5" min="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-3">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Edit Inventory Stock -->
+<div class="modal fade" id="editStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('api_update_stock') }}" method="POST">
+                <input type="hidden" name="food_item_id" id="editItemId">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-boxes-stacked text-primary me-2"></i>Update Usable Inventory</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-3 text-dark" id="editItemNameDisplay">Item Name</h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Current Usable Stock On-Hand</label>
+                        <input type="number" class="form-control" name="current_usable_stock" id="editCurrentStock" step="0.5" min="0" required>
+                        <small class="text-muted">Unexpired portions available to deduct from future prep recommendations</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Safety Stock Buffer Threshold</label>
+                        <input type="number" class="form-control" name="safety_stock_buffer" id="editSafetyBuffer" step="0.5" min="0" required>
+                        <small class="text-muted">Minimum buffer kept for unexpected peak demand</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm px-3">Update Inventory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 3: Log Daily Activity (Prep, Sales, Waste) -->
+<div class="modal fade" id="logActivityModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('api_log_activity') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-clipboard-check text-warning me-2"></i>Log Kitchen Activity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Food Item <span class="text-danger">*</span></label>
+                        <select class="form-select" name="food_item_id" required>
+                            {% for item in items %}
+                                <option value="{{ item.id }}">{{ item.name }} ({{ item.category }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Activity Type <span class="text-danger">*</span></label>
+                            <select class="form-select" name="activity_type" id="activityTypeSelect" required>
+                                <option value="preparation">🍲 Food Prepared</option>
+                                <option value="sales">💰 Daily Sales</option>
+                                <option value="waste" selected>🗑️ Food Waste Log</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Date</label>
+                            <input type="date" class="form-control" name="date" value="{{ today_str }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Quantity <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="quantity" min="0.5" step="0.5" required placeholder="Number of portions">
+                    </div>
+                    <div class="mb-3" id="wasteReasonGroup">
+                        <label class="form-label fw-semibold">Reason for Waste</label>
+                        <select class="form-select" name="waste_reason">
+                            <option value="Overproduction / Unsold Food">Overproduction / Unsold Food</option>
+                            <option value="Improper Storage / Cold Chain Failure">Improper Storage / Cold Chain Failure</option>
+                            <option value="Customer Leftover / Plate Waste">Customer Leftover / Plate Waste</option>
+                            <option value="Kitchen Preparation Spoilage">Kitchen Preparation Spoilage</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning btn-sm text-dark px-3">Record Activity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search filter
+document.getElementById('inventorySearch').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#inventoryTable tbody tr');
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+
+// Edit stock modal setup
+document.querySelectorAll('.edit-stock-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.getElementById('editItemId').value = this.dataset.id;
+        document.getElementById('editItemNameDisplay').textContent = this.dataset.name;
+        document.getElementById('editCurrentStock').value = this.dataset.stock;
+        document.getElementById('editSafetyBuffer').value = this.dataset.buffer;
+    });
+});
+
+// Hide/Show waste reason based on activity type
+const activitySelect = document.getElementById('activityTypeSelect');
+const wasteGroup = document.getElementById('wasteReasonGroup');
+activitySelect.addEventListener('change', function() {
+    if (this.value === 'waste') {
+        wasteGroup.classList.remove('d-none');
+    } else {
+        wasteGroup.classList.add('d-none');
+    }
+});
+</script>
+{% endblock %}

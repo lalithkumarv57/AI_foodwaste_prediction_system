@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Food Waste Prediction System{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading d-flex align-items-center gap-2">
+            <i class="fa-solid fa-leaf text-success fs-4"></i>
+            <div>
+                <span class="d-block lh-1">EcoFeast AI</span>
+                <small class="text-secondary" style="font-size: 0.7rem; font-weight: 400;">Food Waste Predictor</small>
+            </div>
+        </div>
+        <div class="py-3">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </a>
+            <a href="{{ url_for('predict_page') }}" class="sidebar-nav-link {% if request.endpoint == 'predict_page' %}active{% endif %}">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Demand Predictor
+            </a>
+            <a href="{{ url_for('analysis_page') }}" class="sidebar-nav-link {% if request.endpoint == 'analysis_page' %}active{% endif %}">
+                <i class="fa-solid fa-chart-line"></i> Waste Analysis
+            </a>
+            <a href="{{ url_for('inventory_page') }}" class="sidebar-nav-link {% if request.endpoint == 'inventory_page' %}active{% endif %}">
+                <i class="fa-solid fa-boxes-stacked"></i> Inventory & Logs
+            </a>
+            <a href="{{ url_for('models_page') }}" class="sidebar-nav-link {% if request.endpoint == 'models_page' %}active{% endif %}">
+                <i class="fa-solid fa-brain"></i> ML Model Metrics
+            </a>
+            <a href="{{ url_for('upload_page') }}" class="sidebar-nav-link {% if request.endpoint == 'upload_page' %}active{% endif %}">
+                <i class="fa-solid fa-file-csv"></i> Dataset Upload
+            </a>
+            <a href="{{ url_for('reports_page') }}" class="sidebar-nav-link {% if request.endpoint == 'reports_page' %}active{% endif %}">
+                <i class="fa-solid fa-earth-americas"></i> SDG 12 Report
+            </a>
+        </div>
+        <div class="p-3 mt-auto text-secondary small border-top border-secondary border-opacity-25" style="font-size: 0.75rem;">
+            <div class="text-white fw-semibold mb-1"><i class="fa-solid fa-circle-check text-success me-1"></i> System Online</div>
+            <span>Aligned with UN SDG 12: Responsible Consumption</span>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4 py-2 sticky-top shadow-sm">
+            <button class="btn btn-outline-secondary btn-sm d-md-none me-3" id="sidebarToggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0 fw-bold text-dark">{% block page_heading %}AI-Based Food Waste Prediction System{% endblock %}</h5>
+            </div>
+
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <div class="sdg-badge d-none d-sm-inline-flex">
+                    <i class="fa-solid fa-recycle"></i> UN SDG 12 Target
+                </div>
+                <div class="text-muted small d-none d-md-block">
+                    <i class="fa-regular fa-calendar me-1"></i> <span id="currentDateDisplay"></span>
+                </div>
+                <a href="{{ url_for('predict_page') }}" class="btn btn-success btn-sm px-3 shadow-sm rounded-pill">
+                    <i class="fa-solid fa-bolt me-1"></i> New Prediction
+                </a>
+            </div>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div class="container-fluid px-4 mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Main Body Content -->
+        <main class="container-fluid px-4 py-3">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-top py-3 px-4 text-center text-muted small mt-5">
+            <div>
+                <strong>EcoFeast AI</strong> &copy; 2026. Advancing Machine Learning for Sustainable Food Production & Waste Minimization.
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+    // Sidebar toggle for mobile
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', event => {
+            event.preventDefault();
+            document.body.classList.toggle('sb-sidenav-toggled');
+            const wrapper = document.getElementById('sidebar-wrapper');
+            if (wrapper.style.display === 'none') {
+                wrapper.style.display = 'block';
+            } else if (window.innerWidth < 768) {
+                wrapper.style.display = 'none';
+            }
+        });
+    }
+
+    // Set readable local date in navbar
+    const dateElem = document.getElementById('currentDateDisplay');
+    if (dateElem) {
+        const today = new Date();
+        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+        dateElem.textContent = today.toLocaleDateString('en-US', options);
+    }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

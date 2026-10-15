@@ -1,0 +1,218 @@
+:root {
+    --primary-color: #198754;
+    --primary-hover: #146c43;
+    --primary-subtle: #d1e7dd;
+    --secondary-color: #2c3e50;
+    --accent-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --bg-light: #f8fafc;
+    --card-bg: #ffffff;
+    --sidebar-bg: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-active: #10b981;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+#sidebar-wrapper {
+    min-height: 100vh;
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    transition: margin 0.25s ease-out;
+}
+
+.sidebar-heading {
+    padding: 1.5rem 1.25rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-nav-link {
+    color: var(--sidebar-text);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-nav-link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--sidebar-active);
+}
+
+.sidebar-nav-link.active {
+    color: #ffffff;
+    background: rgba(16, 185, 129, 0.12);
+    border-left-color: var(--sidebar-active);
+    font-weight: 600;
+}
+
+.sidebar-nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Main Content Area */
+#page-content-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Cards & Layout */
+.card-kpi {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: var(--card-bg);
+}
+
+.card-kpi:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.kpi-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.kpi-value {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.kpi-subtext {
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+}
+
+/* Card Header */
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+/* SDG Badge */
+.sdg-badge {
+    background: linear-gradient(135deg, #bf8b2e 0%, #d49a37 100%);
+    color: white;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Recommendation Result Callout */
+.rec-callout {
+    border-left: 5px solid var(--primary-color);
+    background: #f0fdf4;
+    padding: 1.25rem;
+    border-radius: 8px;
+}
+
+.risk-high {
+    border-left: 5px solid var(--danger-color);
+    background: #fef2f2;
+}
+
+.risk-medium {
+    border-left: 5px solid var(--warning-color);
+    background: #fffbeb;
+}
+
+.risk-low {
+    border-left: 5px solid var(--primary-color);
+    background: #f0fdf4;
+}
+
+/* Tables */
+.table th {
+    background-color: #f8fafc;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-top: none;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+/* Prediction Meter */
+.prep-formula-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Consolas', monospace;
+    font-size: 0.95rem;
+}
+
+/* Tooltip / Badge tweaks */
+.badge-soft-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-soft-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-soft-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-soft-primary {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
